@@ -15,47 +15,28 @@ export class SteamService {
 
     async handle(game: string) {
         try {
-            const { data } = await axios.get(
-                `https://store.steampowered.com/search/?term=${game}`
-            );
+            const { data } = await axios.get(`https://store.steampowered.com/search/?term=${game}`);
             const $ = cheerio.load(data);
 
-            const results = $("body").find(
-                "#search_result_container > #search_resultsRows > a"
-            );
+            const results = $("body").find("#search_result_container > #search_resultsRows > a");
 
             results.map((i, el) => {
                 const gamePriceHtml = $(el).find(".search_price").html();
 
-                const gamePrices = /.*<strike>(.+)<\/strike>.*<br>(.+)/.exec(
-                    gamePriceHtml as string
-                );
-                let game: ISteamGame = {};
+                const gamePrices = /.*<strike>(.+)<\/strike>.*<br>(.+)/.exec(gamePriceHtml as string);
+                const game: ISteamGame = {};
 
-                game.title = $(el)
-                    .find(".responsive_search_name_combined")
-                    .find(
-                        "div[class='col search_name ellipsis'] > span[class='title']"
-                    )
-                    .text();
+                game.title = $(el).find(".responsive_search_name_combined").find("div[class='col search_name ellipsis'] > span[class='title']").text();
 
-                game.image = $(el)
-                    .find(".search_result_row > .search_capsule > img")
-                    .attr("src");
+                game.image = $(el).find(".search_result_row > .search_capsule > img").attr("src");
 
                 game.url = $(el).attr("href");
 
                 game.discount = $(el).find(".search_discount").text().trim();
 
-                game.discountedPrice = game.discount
-                    ? gamePrices![2].trim()
-                    : "";
+                game.discountedPrice = game.discount ? gamePrices?.[2].trim() : "";
 
-                game.price = game.discount
-                    ? gamePrices![1].trim()
-                    : gamePriceHtml
-                    ? gamePriceHtml.trim()
-                    : "";
+                game.price = game.discount ? gamePrices?.[1].trim() : gamePriceHtml ? gamePriceHtml.trim() : "";
 
                 this.games.push(game);
             });

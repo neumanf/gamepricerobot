@@ -1,4 +1,6 @@
 import { Context, InlineKeyboard } from "grammy";
+// FIX: import from another place
+import { InlineQueryResult } from "grammy/out/platform.node";
 
 import { SteamService } from "./steamService";
 
@@ -12,16 +14,14 @@ export class SearchController {
     }
 
     async handle(ctx: Context) {
-        const games = await this.steamService.handle(ctx.match![0]);
+        const games = await this.steamService.handle(ctx.match?.[0]);
 
-        let results: any[] = [];
+        const results: InlineQueryResult[] = [];
 
         games?.map((game, i) => {
             if (!game || !game.url || i > 20) return;
 
-            const text = `<b>${game.title}</b>\n\n${
-                game.discount && `<b>📈 Discount:</b> ${game.discount}`
-            }\n<b>💵 Price:</b> ${
+            const text = `<b>${game.title}</b>\n\n${game.discount && `<b>📈 Discount:</b> ${game.discount}`}\n<b>💵 Price:</b> ${
                 game.discount ? game.discountedPrice : game.price
             }`;
 
