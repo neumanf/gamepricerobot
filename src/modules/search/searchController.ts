@@ -23,7 +23,7 @@ export class SearchController {
         games?.map((game, i) => {
             if (!game || !game.title || !game.url || i > 20) return;
 
-            const text = `<b>${game.title}a</b>\n${game.discount && `<b>📈 Discount:</b> ${game.discount}\n`}<b>💵 Price:</b> ${
+            const text = `<b>${game.title}</b>\n${game.discount && `<b>📈 Discount:</b> ${game.discount}\n`}<b>💵 Price:</b> ${
                 game.discount ? game.discountedPrice : game.price
             }`;
 
