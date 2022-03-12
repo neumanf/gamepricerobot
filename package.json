@@ -4,7 +4,8 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "dev": "nodemon src/index.ts"
+        "dev": "nodemon src/index.ts",
+        "lint": "eslint . --ext .ts"
     },
     "repository": {
         "type": "git",
@@ -25,7 +26,13 @@
         "grammy": "^1.7.0"
     },
     "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^5.14.0",
+        "@typescript-eslint/parser": "^5.14.0",
+        "eslint": "^8.11.0",
+        "eslint-config-prettier": "^8.5.0",
+        "eslint-plugin-prettier": "^4.0.0",
         "nodemon": "^2.0.15",
+        "prettier": "^2.5.1",
         "ts-node": "^10.7.0",
         "typescript": "^4.6.2"
     }
