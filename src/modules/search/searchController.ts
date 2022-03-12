@@ -14,14 +14,16 @@ export class SearchController {
     }
 
     async handle(ctx: Context) {
-        const games = await this.steamService.handle(ctx.match?.[0]);
+        if (!ctx.match?.[0]) return;
+
+        const games = await this.steamService.handle(ctx.match[0]);
 
         const results: InlineQueryResult[] = [];
 
         games?.map((game, i) => {
-            if (!game || !game.url || i > 20) return;
+            if (!game || !game.title || !game.url || i > 20) return;
 
-            const text = `<b>${game.title}</b>\n\n${game.discount && `<b>📈 Discount:</b> ${game.discount}`}\n<b>💵 Price:</b> ${
+            const text = `<b>${game.title}a</b>\n${game.discount && `<b>📈 Discount:</b> ${game.discount}\n`}<b>💵 Price:</b> ${
                 game.discount ? game.discountedPrice : game.price
             }`;
 
