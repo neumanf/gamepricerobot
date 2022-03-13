@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 
-interface ISteamGame {
+export interface ISteamGame {
     title?: string;
     image?: string;
     url?: string;
