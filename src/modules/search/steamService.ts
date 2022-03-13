@@ -26,7 +26,10 @@ export class SteamService {
                 const gamePrices = /.*<strike>(.+)<\/strike>.*<br>(.+)/.exec(gamePriceHtml as string);
                 const game: ISteamGame = {};
 
-                game.title = $(el).find(".responsive_search_name_combined").find("div[class='col search_name ellipsis'] > span[class='title']").text();
+                game.title = $(el)
+                    .find(".responsive_search_name_combined")
+                    .find("div[class='col search_name ellipsis'] > span[class='title']")
+                    .text();
 
                 game.image = $(el).find(".search_result_row > .search_capsule > img").attr("src");
 
