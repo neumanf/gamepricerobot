@@ -22,9 +22,11 @@ export class SearchController {
     }
 
     async handle(ctx: Context) {
-        if (!ctx.match?.[0]) return;
+        const gameTitle = ctx.match?.[0];
 
-        const games = await this.steamService.handle(ctx.match[0]);
+        if (!gameTitle) return;
+
+        const games = await this.steamService.handle(gameTitle);
 
         const results: InlineQueryResult[] = [];
 
