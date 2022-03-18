@@ -1,24 +1,66 @@
 import { Context, InlineKeyboard } from "grammy";
 // FIX: import from another place
 import { InlineQueryResult } from "grammy/out/platform.node";
+import { EpicGamesService, IEpicGame } from "./epicGamesService";
 
 import { ISteamGame, SteamService } from "./steamService";
 
-export class SearchController {
-    private steamService: SteamService;
+interface IGameServices {
+    steamService: SteamService;
+    epicGamesService: EpicGamesService;
+}
 
-    constructor({ steamService }: { steamService: SteamService }) {
+export class SearchController {
+    private readonly steamService: SteamService;
+    private readonly epicGamesService: EpicGamesService;
+    private steamGames: ISteamGame[] | undefined;
+
+    constructor({ steamService, epicGamesService }: IGameServices) {
         this.steamService = steamService;
+        this.epicGamesService = epicGamesService;
 
         this.handle = this.handle.bind(this);
+        this.handleInlineResult = this.handleInlineResult.bind(this);
     }
 
-    private getMessageText(game: ISteamGame) {
-        return (
-            `<b>${game.title}</b>\n\n` +
-            `${game.discount ? `<b>📈 Discount:</b> ${game.discount}\n` : ""}` +
-            `<b>💵 Price:</b> ${game.discount ? game.discountedPrice : game.price}`
-        );
+    private getMessageText(steamGame: ISteamGame, epicGame?: IEpicGame): string {
+        const getPlatformPricesText = (
+            platform: string,
+            { discount, undiscountedPrice, price }: ISteamGame | IEpicGame,
+        ) => {
+            return `<b>${platform}: </b>${discount ? `[${discount}] <s>${undiscountedPrice}</s>` : ""} ${price}\n`;
+        };
+
+        let message = `<b>🎮 ${steamGame.title}</b>\n\n`;
+        message += "<b>💵 Prices</b>\n";
+        message += getPlatformPricesText("Steam", steamGame);
+        if (epicGame) message += getPlatformPricesText("Epic Games", epicGame);
+
+        return message;
+    }
+
+    private getQueryResult(steamGames: ISteamGame[]) {
+        const results: InlineQueryResult[] = [];
+
+        steamGames.map((steamGame, id) => {
+            if (!steamGame || !steamGame.title || !steamGame.url || id > 20) return;
+
+            results.push({
+                type: "article",
+                id: id.toString(),
+                title: steamGame.title,
+                input_message_content: {
+                    message_text: "Loading...",
+                    parse_mode: "HTML",
+                },
+                url: steamGame.url,
+                reply_markup: new InlineKeyboard().url("Go to Steam", steamGame.url as string),
+                description: steamGame.price,
+                thumb_url: steamGame.image,
+            });
+        });
+
+        return results;
     }
 
     async handle(ctx: Context) {
@@ -26,28 +68,37 @@ export class SearchController {
 
         if (!gameTitle) return;
 
-        const games = await this.steamService.handle(gameTitle);
+        const steamGames = await this.steamService.handle(gameTitle);
 
-        const results: InlineQueryResult[] = [];
+        if (!steamGames) return;
+        this.steamGames = steamGames;
 
-        games?.map((game, i) => {
-            if (!game || !game.title || !game.url || i > 20) return;
-
-            results.push({
-                type: "article",
-                id: i.toString(),
-                title: game.title,
-                input_message_content: {
-                    message_text: this.getMessageText(game),
-                    parse_mode: "HTML",
-                },
-                reply_markup: new InlineKeyboard().url("Steam", game.url),
-                url: game.url,
-                description: game.price,
-                thumb_url: game.image,
-            });
-        });
+        const results = this.getQueryResult(steamGames);
 
         await ctx.answerInlineQuery(results);
+    }
+
+    async handleInlineResult(ctx: Context) {
+        const result = ctx.update.chosen_inline_result;
+
+        if (!result || !this.steamGames) return;
+
+        const messageId = result.inline_message_id;
+        const gameId = result.result_id;
+        const steamGame = this.steamGames[parseInt(gameId)];
+
+        if (!messageId || !steamGame.title) return;
+
+        const epicGames = await this.epicGamesService.handle(steamGame.title.replace(/[^0-9a-zA-Z\s]+/g, ""));
+        const epicGame = epicGames?.[0];
+
+        const messageText = this.getMessageText(steamGame, epicGame);
+        const keyboard = new InlineKeyboard().url("Go to Steam", steamGame.url as string);
+        if (epicGame) keyboard.row().url("Go to Epic Games", epicGame.url as string);
+
+        await ctx.api.editMessageTextInline(messageId, messageText, {
+            parse_mode: "HTML",
+            reply_markup: keyboard,
+        });
     }
 }

@@ -6,7 +6,7 @@ export interface ISteamGame {
     image?: string;
     url?: string;
     discount?: string;
-    discountedPrice?: string;
+    undiscountedPrice?: string;
     price?: string;
 }
 
@@ -37,9 +37,9 @@ export class SteamService {
 
                 game.discount = $(el).find(".search_discount").text().trim();
 
-                game.discountedPrice = game.discount ? gamePrices?.[2].trim() : "";
+                game.undiscountedPrice = game.discount ? gamePrices?.[1].trim() : "";
 
-                game.price = game.discount ? gamePrices?.[1].trim() : gamePriceHtml ? gamePriceHtml.trim() : "";
+                game.price = game.discount ? gamePrices?.[2].trim() : gamePriceHtml ? gamePriceHtml.trim() : "";
 
                 this.games.push(game);
             });
