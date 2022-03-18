@@ -1,17 +1,10 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 
-export interface ISteamGame {
-    title?: string;
-    image?: string;
-    url?: string;
-    discount?: string;
-    undiscountedPrice?: string;
-    price?: string;
-}
+import { IGame } from "../../interfaces/game";
 
 export class SteamService {
-    private games: ISteamGame[] = [];
+    private games: IGame[] = [];
 
     async handle(game: string) {
         try {
@@ -22,24 +15,25 @@ export class SteamService {
 
             results.map((i, el) => {
                 const gamePriceHtml = $(el).find(".search_price").html();
-
                 const gamePrices = /.*<strike>(.+)<\/strike>.*<br>(.+)/.exec(gamePriceHtml as string);
-                const game: ISteamGame = {};
 
-                game.title = $(el)
-                    .find(".responsive_search_name_combined")
-                    .find("div[class='col search_name ellipsis'] > span[class='title']")
-                    .text();
+                if (!gamePrices) return;
 
-                game.image = $(el).find(".search_result_row > .search_capsule > img").attr("src");
-
-                game.url = $(el).attr("href");
-
-                game.discount = $(el).find(".search_discount").text().trim();
-
-                game.undiscountedPrice = game.discount ? gamePrices?.[1].trim() : "";
-
-                game.price = game.discount ? gamePrices?.[2].trim() : gamePriceHtml ? gamePriceHtml.trim() : "";
+                const game: IGame = {
+                    title: $(el)
+                        .find(".responsive_search_name_combined")
+                        .find("div[class='col search_name ellipsis'] > span[class='title']")
+                        .text(),
+                    image: $(el).find(".search_result_row > .search_capsule > img").attr("src") ?? "",
+                    url: $(el).attr("href") ?? "",
+                    discount: $(el).find(".search_discount").text().trim(),
+                    get undiscountedPrice() {
+                        return this.discount ? gamePrices?.[1].trim() : "";
+                    },
+                    get price() {
+                        return this.discount ? gamePrices?.[2].trim() : gamePriceHtml ? gamePriceHtml.trim() : "";
+                    },
+                };
 
                 this.games.push(game);
             });

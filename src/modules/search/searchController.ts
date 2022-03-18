@@ -1,9 +1,10 @@
 import { Context, InlineKeyboard } from "grammy";
 // FIX: import from another place
 import { InlineQueryResult } from "grammy/out/platform.node";
-import { EpicGamesService, IEpicGame } from "./epicGamesService";
 
-import { ISteamGame, SteamService } from "./steamService";
+import { IGame } from "../../interfaces/game";
+import { EpicGamesService } from "./epicGamesService";
+import { SteamService } from "./steamService";
 
 interface IGameServices {
     steamService: SteamService;
@@ -13,7 +14,7 @@ interface IGameServices {
 export class SearchController {
     private readonly steamService: SteamService;
     private readonly epicGamesService: EpicGamesService;
-    private steamGames: ISteamGame[] | undefined;
+    private steamGames: IGame[] | undefined;
 
     constructor({ steamService, epicGamesService }: IGameServices) {
         this.steamService = steamService;
@@ -23,11 +24,8 @@ export class SearchController {
         this.handleInlineResult = this.handleInlineResult.bind(this);
     }
 
-    private getMessageText(steamGame: ISteamGame, epicGame?: IEpicGame): string {
-        const getPlatformPricesText = (
-            platform: string,
-            { discount, undiscountedPrice, price }: ISteamGame | IEpicGame,
-        ) => {
+    private getMessageText(steamGame: IGame, epicGame?: IGame): string {
+        const getPlatformPricesText = (platform: string, { discount, undiscountedPrice, price }: IGame) => {
             return `<b>${platform}: </b>${discount ? `[${discount}] <s>${undiscountedPrice}</s>` : ""} ${price}\n`;
         };
 
@@ -39,7 +37,7 @@ export class SearchController {
         return message;
     }
 
-    private getQueryResult(steamGames: ISteamGame[]) {
+    private getQueryResult(steamGames: IGame[]) {
         const results: InlineQueryResult[] = [];
 
         steamGames.map((steamGame, id) => {

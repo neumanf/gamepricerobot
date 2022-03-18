@@ -1,17 +1,10 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 
-export interface IEpicGame {
-    title?: string;
-    image?: string;
-    url?: string;
-    discount?: string;
-    undiscountedPrice?: string;
-    price?: string;
-}
+import { IGame } from "../../interfaces/game";
 
 export class EpicGamesService {
-    private games: IEpicGame[] = [];
+    private games: IGame[] = [];
 
     async handle(game: string) {
         try {
@@ -23,33 +16,31 @@ export class EpicGamesService {
             const results = $("body").find("section[data-component='BrowseGrid'] > ul > li");
 
             results.map((i, el) => {
-                const game: IEpicGame = {};
-
-                game.title = $(el).find("span[data-component='OfferTitleInfo']").text().trim();
-
-                // FIX: fix url
-                game.image = $(el).find("div[data-component='OfferCardImagePortrait'] > div > img").attr("src");
-
-                game.url = "https://www.epicgames.com" + $(el).find("a").attr("href");
-
-                game.discount = $(el)
-                    .find(
-                        "div[data-component='PriceLayout'] > div > span[data-component='Text'] > div[data-component='BaseTag']",
-                    )
-                    .text()
-                    .trim();
-
-                game.undiscountedPrice = $(el)
-                    .find(
-                        "div[data-component='PriceLayout'] > span > div > span[data-component='Text'] > div[data-component='PDPDiscountedFromPrice']",
-                    )
-                    .text()
-                    .trim();
-
-                game.price = $(el)
-                    .find(`div[data-component='PriceLayout'] > span > div${game.discount ? ":nth-child(2)" : ""}`)
-                    .text()
-                    .trim();
+                const game: IGame = {
+                    title: $(el).find("span[data-component='OfferTitleInfo']").text().trim(),
+                    image: $(el).find("div[data-component='OfferCardImagePortrait'] > div > img").attr("src") ?? "",
+                    url: "https://www.epicgames.com" + $(el).find("a").attr("href"),
+                    discount: $(el)
+                        .find(
+                            "div[data-component='PriceLayout'] > div > span[data-component='Text'] > div[data-component='BaseTag']",
+                        )
+                        .text()
+                        .trim(),
+                    undiscountedPrice: $(el)
+                        .find(
+                            "div[data-component='PriceLayout'] > span > div > span[data-component='Text'] > div[data-component='PDPDiscountedFromPrice']",
+                        )
+                        .text()
+                        .trim(),
+                    get price() {
+                        return $(el)
+                            .find(
+                                `div[data-component='PriceLayout'] > span > div${this.discount ? ":nth-child(2)" : ""}`,
+                            )
+                            .text()
+                            .trim();
+                    },
+                };
 
                 this.games.push(game);
             });
