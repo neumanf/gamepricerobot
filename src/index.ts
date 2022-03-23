@@ -5,8 +5,7 @@ import * as awilix from "awilix";
 
 import { bot } from "./core/bot";
 import { SearchController } from "./modules/search/searchController";
-import { SteamService } from "./modules/search/steamService";
-import { EpicGamesService } from "./modules/search/epicGamesService";
+import { SteamService, EpicGamesService } from "./modules/search/services";
 
 const container = awilix.createContainer({
     injectionMode: awilix.InjectionMode.PROXY,

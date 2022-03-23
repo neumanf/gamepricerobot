@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 
-import { IGame } from "../../interfaces/game";
+import { IGame } from "../../../interfaces/game";
 
 export class SteamService {
     private games: IGame[] = [];

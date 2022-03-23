@@ -3,8 +3,7 @@ import { Context, InlineKeyboard } from "grammy";
 import { InlineQueryResult } from "grammy/out/platform.node";
 
 import { IGame } from "../../interfaces/game";
-import { EpicGamesService } from "./epicGamesService";
-import { SteamService } from "./steamService";
+import { SteamService, EpicGamesService } from "./services";
 
 interface IGameServices {
     steamService: SteamService;
